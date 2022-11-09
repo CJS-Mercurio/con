@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ContactRequest;
 use App\Repositories\CompanyRepository;
 use Illuminate\Http\Request;
 use App\Models\Contact;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\DB;
 
 class ContactController extends Controller
 {
@@ -27,11 +29,13 @@ class ContactController extends Controller
 
         // Display Soft deleted models
         // Pagination, Sorts, Filters, and Search
+        // DB::enableQueryLog();
         $contacts = Contact::allowedTrash()
-            ->allowedSorts('first_name')
+            ->allowedSorts(['first_name', 'last_name', 'email'], "-id")
             ->allowedFilters('company_id')
             ->allowedSearch('first_name', 'last_name', 'email')
             ->paginate(10);
+        // dump(DB::getQueryLog());
         return view('contacts.index', compact('contacts', 'companies'));
 
         // // Creating Pagination Manually
@@ -55,53 +59,31 @@ class ContactController extends Controller
         return view('contacts.create', compact('companies', 'contact'));
     }
 
-    public function store(Request $request)
+    public function store(ContactRequest $request)
     {
-        $request->validate([
-            'first_name' => 'required|string|max:50',
-            'last_name' => 'required|string|max:50',
-            'email' => 'required|email',
-            'phone' => 'nullable',
-            'address' => 'nullable',
-            'company_id' => 'required|exists:companies,id'
-        ]);
         Contact::create($request->all());
         return redirect()->route('contacts.index')->with('message', 'Contact has been added successfully!');
     }
 
-    public function show(Request $request, $id)
+    public function show(Contact $contact)
     {
-        $contact = Contact::findOrFail($id);
-        // abort_if(empty($contact), 404);
         return view('contacts.show')->with('contact', $contact);
     }
 
-    public function edit(Request $request, $id)
+    public function edit(Request $request, Contact $contact)
     {
         $companies = $this->company->pluck();
-        $contact = Contact::findOrFail($id);
-        // abort_if(empty($contact), 404);
         return view('contacts.edit', compact('contact', 'companies'));
     }
 
-    public function update(Request $request, $id)
+    public function update(ContactRequest $request, Contact $contact)
     {
-        $contact = Contact::findOrFail($id);
-        $request->validate([
-            'first_name' => 'required|string|max:50',
-            'last_name' => 'required|string|max:50',
-            'email' => 'required|email',
-            'phone' => 'nullable',
-            'address' => 'nullable',
-            'company_id' => 'required|exists:companies,id'
-        ]);
         $contact->update($request->all());
         return redirect()->route('contacts.index')->with('message', 'Contact has been added updated successfully.');
     }
 
-    public function destroy(Request $request, $id)
+    public function destroy(Request $request, Contact $contact)
     {
-        $contact = Contact::findOrFail($id);
         $contact->delete();
         $redirect = request()->query('redirect');
         return ($redirect ? redirect()->route($redirect) : back())
@@ -109,9 +91,8 @@ class ContactController extends Controller
         ->with('undoRoute', $this->getUndoRoute('contacts.restore', $contact));
     }
 
-    public function restore(Request $request, $id)
+    public function restore(Request $request, Contact $contact)
     {
-        $contact = Contact::onlyTrashed()->findOrFail($id);
         $contact->restore();
         return back()
         ->with('message', 'Contact has been restored from trash.')
@@ -123,9 +104,8 @@ class ContactController extends Controller
         return request()->missing('undo') ? route($name, [$resource->id, 'undo' => true]) :null;
     }
 
-    public function forceDelete(Request $request, $id)
+    public function forceDelete(Contact $contact)
     {
-        $contact = Contact::onlyTrashed()->findOrFail($id);
         $contact->forceDelete();
         return back()
             ->with('message', 'Contact has been removed permanently.');
