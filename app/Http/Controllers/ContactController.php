@@ -12,9 +12,14 @@ use Illuminate\Support\Facades\DB;
 class ContactController extends Controller
 {
 
-    public function __construct(protected CompanyRepository $company)
-    {
+    // public function __construct(protected CompanyRepository $company)
+    // {
         
+    // }
+
+    public function __construct()
+    {
+        $this->middleware('auth');
     }
 
     public function index(CompanyRepository $company, Request $request)
