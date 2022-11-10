@@ -2,71 +2,61 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\ContactRequest;
-use App\Repositories\CompanyRepository;
-use Illuminate\Http\Request;
 use App\Models\Contact;
-use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
+use App\Http\Requests\ContactRequest;
+use App\Models\Company;
+use App\Models\User;
+use App\Repositories\CompanyRepository;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class ContactController extends Controller
 {
 
-    // public function __construct(protected CompanyRepository $company)
-    // {
-        
-    // }
-
     public function __construct()
     {
-        $this->middleware('auth');
+        $this->middleware(['auth', 'verified']);
     }
 
     public function index(CompanyRepository $company, Request $request)
     {
-
+        // 
         // dd($request->sort_by);
         // $companies = [
         //     1 => ['name' => 'Company One', 'contacts' => 3],
         //     2 => ['name' => 'Company Two', 'contacts' => 5],
         // ];
-        $companies = $company->pluck();
+
+        $user = auth()->user();
+        $companies = $user->companies()->orderBy('name')->pluck('name', 'id');
 
         // Display Soft deleted models
         // Pagination, Sorts, Filters, and Search
         // DB::enableQueryLog();
-        $contacts = Contact::allowedTrash()
+        $contacts = $user->contacts()->allowedTrash()
             ->allowedSorts(['first_name', 'last_name', 'email'], "-id")
             ->allowedFilters('company_id')
             ->allowedSearch('first_name', 'last_name', 'email')
             ->paginate(10);
         // dump(DB::getQueryLog());
         return view('contacts.index', compact('contacts', 'companies'));
-
-        // // Creating Pagination Manually
-        // $contactsCollection = Contact::latest()->get();
-        // $perPage = 10;
-        // $currentPage = request()->query('page', 1);
-        // $items = $contactsCollection->slice(($currentPage * $perPage) - $perPage, $perPage);
-        // $total = $contactsCollection->count();
-        // $contacts = new LengthAwarePaginator($items, $total, $perPage, $currentPage, [
-        //     'path' => request()->url(),
-        //     'query' => request()->query()
-        // ]);
-        // $contacts = $this->getContacts();
     }
 
     public function create()
     {
         // dd(request()->method());
-        $companies = $this->company->pluck();
+        // $companies = $this->company->pluck();
         $contact = new Contact();
+        $companies = auth()->user()->companies()->orderBy('name')->pluck('name', 'id');
         return view('contacts.create', compact('companies', 'contact'));
     }
 
     public function store(ContactRequest $request)
     {
-        Contact::create($request->all());
+        // Contact::create($request->all());
+        $request->user()->contacts()->create($request->all());
         return redirect()->route('contacts.index')->with('message', 'Contact has been added successfully!');
     }
 
@@ -77,7 +67,8 @@ class ContactController extends Controller
 
     public function edit(Request $request, Contact $contact)
     {
-        $companies = $this->company->pluck();
+        // $companies = $this->company->pluck();
+        $companies = auth()->user()->companies()->orderBy('name')->pluck('name', 'id');
         return view('contacts.edit', compact('contact', 'companies'));
     }
 

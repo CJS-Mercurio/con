@@ -4,6 +4,7 @@ use App\Http\Controllers\ActivityController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\ContactNoteController;
+use App\Http\Controllers\Settings\AccountController;
 use App\Http\Controllers\TagController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\WelcomeController;
@@ -41,6 +42,8 @@ Route::resource('/activities', ActivityController::class)->parameters([
     'activities' => 'active'
 ]);
 
-Auth::routes();
+Auth::routes(['verify' => true]);
 
 Route::get('/dashboard', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+
+Route::get('settings/account', [AccountController::class, 'index']);
