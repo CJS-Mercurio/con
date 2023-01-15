@@ -24,6 +24,8 @@ use Illuminate\Support\Facades\Auth;
 
 
 Route::get('/', WelcomeController::class);
+
+// Contacts Routes
 Route::resource('/contacts', ContactController::class);
 Route::delete('/contacts/{contact}/restore', [ContactController::class, 'restore'])
     ->name('contacts.restore')
@@ -31,7 +33,11 @@ Route::delete('/contacts/{contact}/restore', [ContactController::class, 'restore
 Route::delete('/contacts/{contact}/force-delete', [ContactController::class, 'forceDelete'])
     ->name('contacts.force-delete')
     ->withTrashed();
+
+// Companies Routes
 Route::resource('/companies', CompanyController::class);
+
+
 Route::resources([
     '/tags' => TagController::class,
     '/tasks' => TaskController::class

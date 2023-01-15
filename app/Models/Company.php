@@ -2,17 +2,17 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Models\Scopes\AllowedSort;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Scopes\AllowedFilterSearch;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Company extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, SoftDeletes, AllowedFilterSearch, AllowedSort;
 
-    // protected $fillable = ['name', 'email', 'address', 'website'];
-    // protected $table = "app_companies";
-    // protected $table = "_id";
+    protected $fillable = ['name', 'email', 'address', 'website'];
 
     public function contacts() {
 

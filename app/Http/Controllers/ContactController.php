@@ -22,13 +22,6 @@ class ContactController extends Controller
 
     public function index(CompanyRepository $company, Request $request)
     {
-        // 
-        // dd($request->sort_by);
-        // $companies = [
-        //     1 => ['name' => 'Company One', 'contacts' => 3],
-        //     2 => ['name' => 'Company Two', 'contacts' => 5],
-        // ];
-
         $user = auth()->user();
         $companies = $user->companies()->orderBy('name')->pluck('name', 'id');
 
@@ -46,7 +39,6 @@ class ContactController extends Controller
 
     public function create()
     {
-        // dd(request()->method());
         // $companies = $this->company->pluck();
         $contact = new Contact();
         $companies = auth()->user()->companies()->orderBy('name')->pluck('name', 'id');
